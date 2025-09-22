@@ -16,33 +16,33 @@ import {
   Users
 } from 'lucide-react';
 
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import Navigation from '@components/navigation';
+// import Footer from '@components/Footer';
+import { Badge } from '@components/ui/badge';
+import { Button } from '@components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
+import { Input } from '@components/ui/input';
+import { Label } from '@components/ui/label';
+import { Textarea } from '@components/ui/textarea';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog';
+} from '@components/ui/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select';
-import { useSimpleAuth } from '@/hooks/use-auth';
+} from '@components/ui/select';
+import { useSimpleAuth } from '@hooks/use-auth';
 import {
   CreateTaskInput,
   useTasks
-} from '@/hooks/use-tasks';
+} from '@hooks/use-tasks';
 import {
   Task,
   TaskCategory,
@@ -52,7 +52,7 @@ import {
   getCategoryDefinition,
   getDifficultyDefinition,
   getStatusDefinition
-} from '@/lib/tasks-data';
+} from '@lib/tasks-data';
 
 const FILTER_CATEGORIES: { id: 'all' | TaskCategory; label: string }[] = [
   { id: 'all', label: 'Toutes les catégories' },
@@ -384,7 +384,7 @@ export default function ContributePage() {
 
   return (
     <main className="min-h-screen bg-brand-night text-white">
-      <Navigation />
+      {/* <Navigation /> */}
       <section className="relative overflow-hidden bg-brand-dark pt-32 pb-20">
         <div className="absolute inset-0 bg-brand-dark" />
         <div
@@ -751,7 +751,7 @@ export default function ContributePage() {
         </div>
       </section>
 
-      <Footer />
+      {/* <Footer /> */}
 
       <Dialog
         open={isDetailOpen}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Typography } from "@components/DS/typography";
 import { SectionLayout } from "@feat/landing/section-layout";
 import { Button } from "@ui/button";
@@ -6,6 +7,7 @@ export type CtaWithButtonProps = {
   title: string;
   btContent: string;
   size?: "xs" | "sm" | "base" | "lg" | "full";
+  href?: string;
 };
 
 export const CtaWithButton = (props: CtaWithButtonProps) => {
@@ -21,9 +23,15 @@ export const CtaWithButton = (props: CtaWithButtonProps) => {
       >
         {props.title}
       </Typography>
-      <Button variant="invert" size="xl" className="w-full">
-        {props.btContent}
-      </Button>
+      {props.href ? (
+          <Button variant="invert" size="xl" className="w-full" asChild={true}>
+            <Link href={props.href}>{props.btContent}</Link>
+          </Button>
+      ) : (
+        <Button variant="invert" size="xl" className="w-full">
+          {props.btContent}
+        </Button>
+      )}
     </SectionLayout>
   );
 };

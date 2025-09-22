@@ -62,6 +62,7 @@ export const LINKS = {
     ),
     Changelog: createLink("/changelog", "Changelog", { disabled: true }, false),
     Roadmap: createLink("/roadmap", "Roadmap", { disabled: true }, false),
+    Contribute: createLink("/contribute", "Contribute", { disabled: true }, false),
   },
 
   Lore: {

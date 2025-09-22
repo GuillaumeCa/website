@@ -1,6 +1,7 @@
 import { CtaWithButton } from "@components/DS/CTA/ctaWithButton";
 import { Typography } from "@components/DS/typography";
 import { SectionLayout } from "@feat/landing/section-layout";
+import { LINKS } from "@feat/navigation/Links";
 import { NewCard } from "@feat/news/new-card";
 import { getLatestNews } from "@feat/news/news-manager";
 
@@ -13,6 +14,7 @@ export default async function HomePage() {
         size="xs"
         title="Join us and contribute to the project!"
         btContent="How to contribute"
+        href={LINKS.Project.Contribute.href()}
       />
       <SectionLayout variant="transparent">
         <Typography variant="h2" className="mb-4">
