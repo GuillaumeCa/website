@@ -1,9 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { supabase } from '@lib/supabase';
 import {
-  FALLBACK_TASKS,
   Task,
   TaskContributor,
   TaskDifficulty,
@@ -303,8 +301,386 @@ export function useTasks(): UseTasksResult {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isUsingFallback, setIsUsingFallback] = useState(!supabase);
-  const [preferredShape, setPreferredShape] = useState<TaskTableShape>(TABLE_SHAPES[0]);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+
+  // Mock de données GitHub issues pour simuler plusieurs sous-repositories
+  const createMockGitHubIssues = useCallback((): any[] => {
+    const repositories = [
+      'dying-star/frontend',
+      'dying-star/backend',
+      'dying-star/mobile-app',
+      'dying-star/docs',
+      'dying-star/design-system'
+    ];
+
+    const mockIssues = [
+      // Issues du repository frontend
+      {
+        id: 1001,
+        number: 1,
+        title: 'Améliorer la performance du composant Dashboard',
+        body: 'Le composant Dashboard prend trop de temps à se charger. Il faut optimiser les requêtes et le rendu.',
+        state: 'open',
+        labels: [
+          { name: 'status:in-progress', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Dev', color: '0052cc' },
+          { name: 'bug', color: 'd73a4a' },
+          { name: 'performance', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 1,
+            login: 'alice-dev',
+            avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4'
+          }
+        ],
+        created_at: '2024-01-15T10:30:00Z',
+        updated_at: '2024-01-20T14:22:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/1',
+        repository: 'dying-star/frontend'
+      },
+      {
+        id: 1002,
+        number: 2,
+        title: 'Implémenter le dark mode',
+        body: 'Ajouter un toggle pour basculer entre le mode clair et sombre dans toute l\'application.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:easy', color: '28a745' },
+          { name: 'category:Dev', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'ui/ux', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 6,
+            login: 'frank-ui',
+            avatar_url: 'https://avatars.githubusercontent.com/u/6?v=4'
+          }
+        ],
+        created_at: '2024-01-18T09:15:00Z',
+        updated_at: '2024-01-18T09:15:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/2',
+        repository: 'dying-star/frontend'
+      },
+      // Issues du repository backend
+      {
+        id: 2001,
+        number: 1,
+        title: 'Optimiser les requêtes de base de données',
+        body: 'Les requêtes SQL sont trop lentes. Analyser et optimiser les index et les jointures.',
+        state: 'open',
+        labels: [
+          { name: 'status:in-progress', color: '0e8a16' },
+          { name: 'difficulty:hard', color: 'd73a4a' },
+          { name: 'category:Tech', color: '0052cc' },
+          { name: 'performance', color: '7057ff' },
+          { name: 'database', color: 'f9d0c4' }
+        ],
+        assignees: [
+          {
+            id: 2,
+            login: 'bob-backend',
+            avatar_url: 'https://avatars.githubusercontent.com/u/2?v=4'
+          },
+          {
+            id: 3,
+            login: 'charlie-dba',
+            avatar_url: 'https://avatars.githubusercontent.com/u/3?v=4'
+          }
+        ],
+        created_at: '2024-01-10T08:45:00Z',
+        updated_at: '2024-01-22T16:30:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/3',
+        repository: 'dying-star/backend'
+      },
+      {
+        id: 2002,
+        number: 2,
+        title: 'Ajouter l\'authentification OAuth',
+        body: 'Implémenter l\'authentification via Google et GitHub pour simplifier la connexion des utilisateurs.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Tech', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'security', color: 'd73a4a' }
+        ],
+        assignees: [
+          {
+            id: 7,
+            login: 'grace-auth',
+            avatar_url: 'https://avatars.githubusercontent.com/u/7?v=4'
+          }
+        ],
+        created_at: '2024-01-20T11:20:00Z',
+        updated_at: '2024-01-20T11:20:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/4',
+        repository: 'dying-star/backend'
+      },
+      // Issues du repository mobile-app
+      {
+        id: 3001,
+        number: 1,
+        title: 'Corriger le bug de synchronisation offline',
+        body: 'L\'application ne synchronise pas correctement les données quand elle revient en ligne.',
+        state: 'open',
+        labels: [
+          { name: 'status:in-progress', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Dev', color: '0052cc' },
+          { name: 'bug', color: 'd73a4a' },
+          { name: 'sync', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 4,
+            login: 'diana-mobile',
+            avatar_url: 'https://avatars.githubusercontent.com/u/4?v=4'
+          }
+        ],
+        created_at: '2024-01-12T14:10:00Z',
+        updated_at: '2024-01-21T09:45:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/5',
+        repository: 'dying-star/mobile-app'
+      },
+      {
+        id: 3002,
+        number: 2,
+        title: 'Améliorer l\'interface utilisateur mobile',
+        body: 'Refactoriser les composants pour une meilleure expérience utilisateur sur mobile.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:easy', color: '28a745' },
+          { name: 'category:Dev', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'ui/ux', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 8,
+            login: 'henry-mobile',
+            avatar_url: 'https://avatars.githubusercontent.com/u/8?v=4'
+          }
+        ],
+        created_at: '2024-01-19T16:30:00Z',
+        updated_at: '2024-01-19T16:30:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/6',
+        repository: 'dying-star/mobile-app'
+      },
+      // Issues du repository docs
+      {
+        id: 4001,
+        number: 1,
+        title: 'Mettre à jour la documentation API',
+        body: 'La documentation de l\'API est obsolète. Mettre à jour tous les endpoints et exemples.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:easy', color: '28a745' },
+          { name: 'category:Community', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'docs', color: 'f9d0c4' }
+        ],
+        assignees: [
+          {
+            id: 9,
+            login: 'iris-docs',
+            avatar_url: 'https://avatars.githubusercontent.com/u/9?v=4'
+          }
+        ],
+        created_at: '2024-01-16T13:25:00Z',
+        updated_at: '2024-01-16T13:25:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/7',
+        repository: 'dying-star/docs'
+      },
+      // Issues du repository design-system
+      {
+        id: 5001,
+        number: 1,
+        title: 'Créer un composant Button réutilisable',
+        body: 'Développer un composant Button avec toutes les variantes (primary, secondary, danger, etc.).',
+        state: 'open',
+        labels: [
+          { name: 'status:in-progress', color: '0e8a16' },
+          { name: 'difficulty:easy', color: '28a745' },
+          { name: 'category:Art', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'component', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 5,
+            login: 'eve-designer',
+            avatar_url: 'https://avatars.githubusercontent.com/u/5?v=4'
+          }
+        ],
+        created_at: '2024-01-14T10:00:00Z',
+        updated_at: '2024-01-23T12:15:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/8',
+        repository: 'dying-star/design-system'
+      },
+      {
+        id: 5002,
+        number: 2,
+        title: 'Standardiser les couleurs du thème',
+        body: 'Définir une palette de couleurs cohérente pour toute l\'application.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Art', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'design', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 10,
+            login: 'jack-design',
+            avatar_url: 'https://avatars.githubusercontent.com/u/10?v=4'
+          }
+        ],
+        created_at: '2024-01-17T15:40:00Z',
+        updated_at: '2024-01-17T15:40:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/9',
+        repository: 'dying-star/design-system'
+      },
+      // Issues supplémentaires pour plus de diversité
+      {
+        id: 6001,
+        number: 1,
+        title: 'Concevoir le système de progression des joueurs',
+        body: 'Définir les mécaniques de progression, niveaux et récompenses pour maintenir l\'engagement des joueurs.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:hard', color: 'd73a4a' },
+          { name: 'category:Game Design', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'progression', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 11,
+            login: 'kate-gamedesign',
+            avatar_url: 'https://avatars.githubusercontent.com/u/11?v=4'
+          }
+        ],
+        created_at: '2024-01-21T10:00:00Z',
+        updated_at: '2024-01-21T10:00:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/10',
+        repository: 'dying-star/game-design'
+      },
+      {
+        id: 7001,
+        number: 1,
+        title: 'Écrire les dialogues du chapitre 3',
+        body: 'Développer les dialogues et interactions pour le chapitre 3 de la campagne principale.',
+        state: 'open',
+        labels: [
+          { name: 'status:in-progress', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Narrative', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'writing', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 12,
+            login: 'luna-writer',
+            avatar_url: 'https://avatars.githubusercontent.com/u/12?v=4'
+          },
+          {
+            id: 13,
+            login: 'mike-narrative',
+            avatar_url: 'https://avatars.githubusercontent.com/u/13?v=4'
+          }
+        ],
+        created_at: '2024-01-22T14:30:00Z',
+        updated_at: '2024-01-23T09:15:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/11',
+        repository: 'dying-star/narrative'
+      },
+      {
+        id: 8001,
+        number: 1,
+        title: 'Créer les ambiances sonores de l\'espace',
+        body: 'Développer les ambiances sonores immersives pour les environnements spatiaux du jeu.',
+        state: 'open',
+        labels: [
+          { name: 'status:open', color: '0e8a16' },
+          { name: 'difficulty:medium', color: 'f29513' },
+          { name: 'category:Audio', color: '0052cc' },
+          { name: 'enhancement', color: 'a2eeef' },
+          { name: 'sound-design', color: '7057ff' }
+        ],
+        assignees: [
+          {
+            id: 14,
+            login: 'nina-audio',
+            avatar_url: 'https://avatars.githubusercontent.com/u/14?v=4'
+          }
+        ],
+        created_at: '2024-01-24T11:45:00Z',
+        updated_at: '2024-01-24T11:45:00Z',
+        html_url: 'https://github.com/DyingStar-game/website/issues/12',
+        repository: 'dying-star/audio'
+      }
+    ];
+
+    return mockIssues;
+  }, []);
+
+  const loadGithubIssues = useCallback(async (): Promise<Task[]> => {
+    try {
+      // Utiliser le mock au lieu de l'API réelle
+      const mockIssues = createMockGitHubIssues();
+      
+      return mockIssues.map((issue) => ({
+        id: String(issue.id),
+        title: typeof issue.title === 'string' && issue.title.trim().length > 0 ? issue.title : 'Tâche sans titre',
+        description:
+          typeof issue.body === 'string' && issue.body.trim().length > 0
+            ? issue.body
+            : 'Description à compléter',
+        category: normalizeTaskCategory(
+          issue.labels?.find((l: any) => l.name.startsWith('category:'))?.name.split(':')[1] || null
+        ),
+        rawCategory: issue.labels?.find((l: any) => l.name.startsWith('category:'))?.name.split(':')[1] || undefined,
+        status: normalizeTaskStatus(
+          issue.labels?.find((l: any) => l.name.startsWith('status:'))?.name.split(':')[1] || null
+        ),
+        difficulty: normalizeTaskDifficulty(
+          issue.labels?.find((l: any) => l.name.startsWith('difficulty:'))?.name.split(':')[1] || null
+        ),
+        tags: issue.labels?.map((l: any) => l.name).filter((name: string) => !name.includes(':')) || undefined,
+        requiredRoles: undefined,
+        deliverables: undefined,
+        max_contributors: null,
+        contributors: Array.isArray(issue.assignees)
+          ? issue.assignees
+              .filter(Boolean)
+              .map((assignee: any) => ({
+                id: String(assignee.id ?? assignee.login ?? 'gh'),
+                user_id: String(assignee.id ?? assignee.login ?? 'gh'),
+                username: String(assignee.login ?? 'Contributor'),
+                avatar_url: assignee.avatar_url ?? null,
+                role: null,
+                claimed_at: null
+              }))
+          : [],
+        created_at: issue.created_at ? String(issue.created_at) : undefined,
+        updated_at: issue.updated_at ? String(issue.updated_at) : undefined,
+        html_url: issue.html_url || undefined
+      }));
+    } catch {
+      return [];
+    }
+  }, [createMockGitHubIssues]);
 
   const sortedTasks = useMemo(() => {
     return [...tasks].sort((a, b) => {
@@ -325,40 +701,15 @@ export function useTasks(): UseTasksResult {
     setIsLoading(true);
     setError(null);
 
-    if (!supabase) {
-      setTasks(FALLBACK_TASKS);
-      setIsUsingFallback(true);
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      const { data, error: supabaseError } = await supabase
-        .from('taches')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (supabaseError) {
-        console.error('Erreur Supabase lors du chargement des tâches', supabaseError);
-        setError('Impossible de récupérer les tâches. Données locales affichées.');
-        setTasks(FALLBACK_TASKS);
-        setIsUsingFallback(true);
-        return;
-      }
-
-      if (Array.isArray(data) && data.length > 0) {
-        const detected = detectShapeFromRow(data[0] as Record<string, any>);
-        setPreferredShape(detected);
-      }
-
-      const mapped = Array.isArray(data) ? data.map((row) => mapRowToTask(row as Record<string, any>)) : [];
-      setTasks(mapped.length ? mapped : []);
+      const ghTasks = await loadGithubIssues();
+      setTasks(ghTasks);
       setIsUsingFallback(false);
     } catch (err) {
       console.error('Erreur inattendue lors du chargement des tâches', err);
-      setError('Erreur de connexion aux tâches. Données locales affichées.');
-      setTasks(FALLBACK_TASKS);
-      setIsUsingFallback(true);
+      setError('Erreur de connexion à GitHub.');
+      setTasks([]);
+      setIsUsingFallback(false);
     } finally {
       setIsLoading(false);
     }
@@ -369,216 +720,39 @@ export function useTasks(): UseTasksResult {
   }, [loadTasks]);
 
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
-    const channel = supabase
-      .channel('dyingstar-taches')
-      .on('postgres_changes', { event: '*', schema: 'dyingstar', table: 'taches' }, () => {
-        void loadTasks();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Realtime disabled since tasks are loaded from GitHub only.
+    return;
   }, [loadTasks]);
 
-  const createTask = useCallback(
-    async (task: CreateTaskInput) => {
-      if (!supabase) {
-        const newTask: Task = {
-          id: generateLocalId(),
-          title: task.title,
-          description: task.description,
-          category: task.category,
-          rawCategory:
-            task.category === 'Autre'
-              ? task.customCategory?.trim() || 'Autre'
-              : task.category,
-          status: task.status,
-          difficulty: task.difficulty,
-          tags: task.tags?.filter((tag) => tag.trim().length > 0),
-          requiredRoles: task.requiredRoles?.filter((role) => role.trim().length > 0),
-          deliverables: task.deliverables?.filter((item) => item.trim().length > 0),
-          max_contributors: task.max_contributors ?? null,
-          contributors: [],
-          created_at: new Date().toISOString()
-        };
-        setTasks((previous) => [newTask, ...previous]);
-        return {};
-      }
+  const createTask = useCallback(async (_task: CreateTaskInput) => {
+    // Read-only: tasks are managed on GitHub
+    setError('Création désactivée: les tâches proviennent de GitHub.');
+    return { error: 'read-only' };
+  }, []);
 
-      let lastError: unknown = null;
-      for (const shape of getShapesToTry(preferredShape)) {
-        const payload = buildInsertPayload(shape, task, []);
-        const { error: supabaseError } = await supabase.from('taches').insert([payload]);
-        if (!supabaseError) {
-          setPreferredShape(shape);
-          await loadTasks();
-          return {};
-        }
-        lastError = supabaseError;
-      }
-      setError('Erreur lors de la création de la tâche');
-      return { error: lastError };
-    },
-    [loadTasks, preferredShape]
-  );
+  const updateTask = useCallback(async (_id: string, _patch: UpdateTaskInput) => {
+    // Read-only: tasks are managed on GitHub
+    setError('Mise à jour désactivée: les tâches proviennent de GitHub.');
+    return { error: 'read-only' };
+  }, []);
 
-  const updateTask = useCallback(
-    async (id: string, patch: UpdateTaskInput) => {
-      if (!supabase) {
-        setTasks((previous) =>
-          previous.map((task) =>
-            task.id === id
-              ? {
-                  ...task,
-                  ...patch,
-                  category: patch.category ?? task.category,
-                  rawCategory:
-                    patch.category === 'Autre'
-                      ? patch.customCategory?.trim() || task.rawCategory || 'Autre'
-                      : patch.category ?? task.rawCategory
-                }
-              : task
-          )
-        );
-        return {};
-      }
+  const deleteTask = useCallback(async (_id: string) => {
+    // Read-only: tasks are managed on GitHub
+    setError('Suppression désactivée: les tâches proviennent de GitHub.');
+    return { error: 'read-only' };
+  }, []);
 
-      let lastError: unknown = null;
-      for (const shape of getShapesToTry(preferredShape)) {
-        const payload = buildUpdatePayload(shape, patch);
-        if (Object.keys(payload).length === 0) {
-          return {};
-        }
-        const { error: supabaseError } = await supabase.from('taches').update(payload).eq('id', id);
-        if (!supabaseError) {
-          setPreferredShape(shape);
-          await loadTasks();
-          return {};
-        }
-        lastError = supabaseError;
-      }
-      setError('Erreur lors de la mise à jour de la tâche');
-      return { error: lastError };
-    },
-    [loadTasks, preferredShape]
-  );
+  const claimTask = useCallback(async (_taskId: string, _contributor: TaskContributor) => {
+    // Read-only: assignments are managed on GitHub (assignees)
+    setError('Attribution désactivée: utilisez les assignees GitHub.');
+    return { error: 'read-only' };
+  }, []);
 
-  const deleteTask = useCallback(
-    async (id: string) => {
-      if (!supabase) {
-        setTasks((previous) => previous.filter((task) => task.id !== id));
-        return {};
-      }
-
-      let lastError: unknown = null;
-      for (const shape of getShapesToTry(preferredShape)) {
-        const { error: supabaseError } = await supabase.from('taches').delete().eq('id', id);
-        if (!supabaseError) {
-          setPreferredShape(shape);
-          await loadTasks();
-          return {};
-        }
-        lastError = supabaseError;
-      }
-      setError('Erreur lors de la suppression de la tâche');
-      return { error: lastError };
-    },
-    [loadTasks, preferredShape]
-  );
-
-  const claimTask = useCallback(
-    async (taskId: string, contributor: TaskContributor) => {
-      const contributorWithMeta: TaskContributor = {
-        ...contributor,
-        claimed_at: contributor.claimed_at ?? new Date().toISOString()
-      };
-      if (!supabase) {
-        setTasks((previous) =>
-          previous.map((task) => {
-            if (task.id !== taskId) return task;
-            const exists = task.contributors.some((entry) => entry.user_id === contributor.user_id);
-            if (exists) {
-              return task;
-            }
-            return {
-              ...task,
-              contributors: [...task.contributors, contributorWithMeta]
-            };
-          })
-        );
-        return {};
-      }
-
-      const targetedTask = tasks.find((task) => task.id === taskId);
-      const updatedContributors = targetedTask
-        ? [
-            ...targetedTask.contributors.filter((entry) => entry.user_id !== contributor.user_id),
-            contributorWithMeta
-          ]
-        : [contributorWithMeta];
-
-      let lastError: unknown = null;
-      for (const shape of getShapesToTry(preferredShape)) {
-        const { error: supabaseError } = await supabase
-          .from('taches')
-          .update({ [shape.contributors]: updatedContributors })
-          .eq('id', taskId);
-        if (!supabaseError) {
-          setPreferredShape(shape);
-          await loadTasks();
-          return {};
-        }
-        lastError = supabaseError;
-      }
-      setError("Erreur lors de l'attribution de la tâche");
-      return { error: lastError };
-    },
-    [loadTasks, preferredShape, tasks]
-  );
-
-  const releaseTask = useCallback(
-    async (taskId: string, contributorId: string) => {
-      if (!supabase) {
-        setTasks((previous) =>
-          previous.map((task) =>
-            task.id === taskId
-              ? {
-                  ...task,
-                  contributors: task.contributors.filter((entry) => entry.user_id !== contributorId)
-                }
-              : task
-          )
-        );
-        return {};
-      }
-
-      const targetedTask = tasks.find((task) => task.id === taskId);
-      const updatedContributors = targetedTask
-        ? targetedTask.contributors.filter((entry) => entry.user_id !== contributorId)
-        : [];
-
-      let lastError: unknown = null;
-      for (const shape of getShapesToTry(preferredShape)) {
-        const { error: supabaseError } = await supabase
-          .from('taches')
-          .update({ [shape.contributors]: updatedContributors })
-          .eq('id', taskId);
-        if (!supabaseError) {
-          setPreferredShape(shape);
-          await loadTasks();
-          return {};
-        }
-        lastError = supabaseError;
-      }
-      setError("Erreur lors de la libération de la tâche");
-      return { error: lastError };
-    },
-    [loadTasks, preferredShape, tasks]
-  );
+  const releaseTask = useCallback(async (_taskId: string, _contributorId: string) => {
+    // Read-only: assignments are managed on GitHub (assignees)
+    setError('Libération désactivée: utilisez les assignees GitHub.');
+    return { error: 'read-only' };
+  }, []);
 
   return {
     tasks: sortedTasks,

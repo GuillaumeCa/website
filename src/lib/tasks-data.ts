@@ -46,6 +46,103 @@ export const TASK_CATEGORY_DEFINITIONS = [
 export type KnownTaskCategory = typeof TASK_CATEGORY_DEFINITIONS[number]['id'];
 export type TaskCategory = KnownTaskCategory | 'Autre';
 
+// Thème visuel par catégorie basé sur les images fournies
+export const CATEGORY_THEME: Record<TaskCategory, {
+  cardBg: string;
+  cardBorder: string;
+  categoryBadge: string;
+  statusBadge: string;
+  difficultyBadge: string;
+  tagBadge: string;
+  placeholder: string;
+  icon: string;
+}> = {
+  Dev: {
+    cardBg: 'bg-[#2b4a5c]',
+    cardBorder: 'border-cyan-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Code'
+  },
+  'Game Design': {
+    cardBg: 'bg-[#3f3a28]',
+    cardBorder: 'border-amber-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Gamepad2'
+  },
+  Narrative: {
+    cardBg: 'bg-[#332b41]',
+    cardBorder: 'border-fuchsia-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=1200&h=640&fit=crop&crop=center',
+    icon: 'BookOpen'
+  },
+  Tech: {
+    cardBg: 'bg-[#26344a]',
+    cardBorder: 'border-indigo-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Server'
+  },
+  Art: {
+    cardBg: 'bg-[#4b2d36]',
+    cardBorder: 'border-rose-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Palette'
+  },
+  Audio: {
+    cardBg: 'bg-[#2e4a4a]',
+    cardBorder: 'border-emerald-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Volume2'
+  },
+  Community: {
+    cardBg: 'bg-[#2f3944]',
+    cardBorder: 'border-slate-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1522202176988-66214c8466da?w=1200&h=640&fit=crop&crop=center',
+    icon: 'Users'
+  },
+  Autre: {
+    cardBg: 'bg-[#2f3640]',
+    cardBorder: 'border-slate-500/30',
+    categoryBadge: 'bg-amber-500/90 text-amber-900 border-amber-500/40',
+    statusBadge: 'bg-orange-500 text-white border-orange-500/40',
+    difficultyBadge: 'bg-white/10 text-white border-white/30',
+    tagBadge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    placeholder: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=640&fit=crop&crop=center',
+    icon: 'HelpCircle'
+  }
+};
+
+export function getCategoryTheme(category: TaskCategory) {
+  return CATEGORY_THEME[category] ?? CATEGORY_THEME.Autre;
+}
+
 export const TASK_CATEGORY_ORDER: TaskCategory[] = [
   'Dev',
   'Game Design',
@@ -133,6 +230,7 @@ export interface Task {
   contributors: TaskContributor[];
   created_at?: string;
   updated_at?: string;
+  html_url?: string;
 }
 
 const CATEGORY_LOOKUP = new Map(

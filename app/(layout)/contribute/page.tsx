@@ -8,6 +8,16 @@ import {
   ArrowRight,
   BookmarkCheck,
   BookmarkPlus,
+  ChevronDown,
+  ChevronUp,
+  Code,
+  Gamepad2,
+  BookOpen,
+  Server,
+  Palette,
+  Volume2,
+  Users as UsersIcon,
+  HelpCircle,
   Filter,
   Loader2,
   Plus,
@@ -18,6 +28,7 @@ import {
 
 import Navigation from '@components/navigation';
 // import Footer from '@components/Footer';
+import { Avatar, AvatarFallback, AvatarImage } from '@components/ui/avatar';
 import { Badge } from '@components/ui/badge';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
@@ -50,6 +61,7 @@ import {
   TaskStatus,
   TASK_CATEGORY_DEFINITIONS,
   getCategoryDefinition,
+  getCategoryTheme,
   getDifficultyDefinition,
   getStatusDefinition
 } from '@lib/tasks-data';
@@ -79,10 +91,27 @@ const formatContributorInitials = (name: string) => {
   return initials || name.charAt(0)?.toUpperCase() || '?';
 };
 
+const getCategoryIcon = (category: TaskCategory) => {
+  const iconMap = {
+    Dev: Code,
+    'Game Design': Gamepad2,
+    Narrative: BookOpen,
+    Tech: Server,
+    Art: Palette,
+    Audio: Volume2,
+    Community: UsersIcon,
+    Autre: HelpCircle
+  };
+  return iconMap[category] || HelpCircle;
+};
+
 function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }) {
   const statusMeta = getStatusDefinition(task.status);
   const difficultyMeta = getDifficultyDefinition(task.difficulty);
   const categoryMeta = getCategoryDefinition(task.category);
+  const theme = getCategoryTheme(task.category);
+  const CategoryIcon = getCategoryIcon(task.category);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <motion.div
@@ -91,66 +120,114 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }
       viewport={{ once: true, amount: 0.3 }}
       transition={{ duration: 0.35 }}
     >
-      <Card className="group relative h-full border border-brand-primary/25 bg-brand-dark/70 px-6 pb-6 pt-5 shadow-[0_18px_35px_rgba(var(--brand-dark-rgb),0.35)] transition-all duration-300 hover:border-brand-primary/60 hover:shadow-[0_30px_55px_rgba(var(--brand-dark-rgb),0.5)]">
-        <CardHeader className="space-y-4 p-0">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <Badge className={`border text-[0.55rem] uppercase tracking-[0.35em] ${statusMeta.badge}`}>
-              {statusMeta.label}
-            </Badge>
-            <Badge className={`border text-[0.55rem] uppercase tracking-[0.35em] ${difficultyMeta.badge}`}>
-              {difficultyMeta.label}
-            </Badge>
+      <Card 
+        className={`group relative overflow-hidden rounded-lg border ${theme.cardBorder} ${theme.cardBg} shadow-[0_18px_35px_rgba(0,0,0,0.35)] hover:shadow-[0_30px_55px_rgba(0,0,0,0.5)]`}
+        style={{
+          height: isExpanded ? 'auto' : '20rem',
+          transition: 'height 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        <CardHeader className="space-y-4 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <CategoryIcon className="h-6 w-6 text-white" />
+              <Badge className={`rounded-full border text-[0.55rem] uppercase tracking-[0.35em] ${theme.categoryBadge}`}>
+                {categoryMeta.label}
+              </Badge>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-white/80 hover:bg-white/10 transition-transform duration-300"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center rounded-full border border-brand-primary/40 bg-brand-primary/10 px-3 py-1 text-[0.55rem] uppercase tracking-[0.35em] text-brand-primary">
-              {categoryMeta.label}
-            </span>
-            {task.max_contributors ? (
-              <span className="text-[0.55rem] uppercase tracking-[0.35em] text-white/60">
-                {task.contributors.length}/{task.max_contributors} places
-              </span>
-            ) : null}
+          
+          {/* Image placeholder - visible seulement lors de l'expansion, entre catégorie et titre */}
+          <div 
+            className={`relative h-40 w-full overflow-hidden transition-all duration-200 ease-out ${
+              isExpanded 
+                ? 'opacity-100 max-h-40 transform translate-y-0' 
+                : 'opacity-0 max-h-0 transform -translate-y-4'
+            }`}
+          >
+            <img src={theme.placeholder} alt={task.title} className="h-full w-full object-cover rounded-lg" />
+            <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-black/10 to-transparent rounded-lg" />
           </div>
-          <CardTitle className="text-2xl font-semibold text-white">
+          
+          <CardTitle className="text-2xl font-semibold text-white leading-tight">
             {task.title}
           </CardTitle>
-          <p className="text-sm leading-relaxed text-white/75 line-clamp-4">
-            {task.description}
-          </p>
-        </CardHeader>
-        <CardContent className="mt-6 flex flex-col gap-6 p-0">
-          {task.tags && task.tags.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {task.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 rounded-full border border-brand-primary/30 bg-brand-primary/10 px-3 py-1 text-[0.55rem] uppercase tracking-[0.35em] text-brand-primary"
-                >
-                  <Tag className="h-3 w-3" />
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : null}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {task.contributors.slice(0, 3).map((contributor) => (
-                  <div
+        
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <Badge className={`rounded-full border text-[0.55rem] uppercase tracking-[0.35em] ${theme.statusBadge}`}>
+            {statusMeta.label}
+          </Badge>
+          <Badge className={`rounded-full border text-[0.55rem] uppercase tracking-[0.35em] ${theme.difficultyBadge}`}>
+            {difficultyMeta.label}
+          </Badge>
+        </div>
+        
+        {/* Tags dans le header */}
+        {task.tags && task.tags.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {task.tags.map((tag) => (
+              <span
+                key={tag}
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[0.55rem] uppercase tracking-[0.35em] ${theme.tagBadge}`}
+              >
+                <Tag className="h-3 w-3" />
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </CardHeader>
+      
+      <div 
+        className={`overflow-hidden transition-all duration-200 ease-out ${
+          isExpanded 
+            ? 'opacity-100 max-h-[1000px] transform translate-y-0' 
+            : 'opacity-0 max-h-0 transform -translate-y-4'
+        }`}
+      >
+        <CardContent className="flex flex-col gap-6 p-6 pt-0">
+          {/* Description visible seulement lors de l'expansion */}
+          <p className="text-sm leading-relaxed text-white/75">{task.description}</p>
+          
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-1">
+                {task.contributors.slice(0, 4).map((contributor) => (
+                  <Avatar
                     key={`${task.id}-${contributor.user_id}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-primary/40 bg-brand-primary/15 text-[0.65rem] font-semibold text-brand-dark"
+                    className="h-6 w-6 border border-white/25"
                     title={contributor.username}
                   >
-                    {formatContributorInitials(contributor.username)}
-                  </div>
+                    <AvatarImage 
+                      src={contributor.avatar_url || undefined} 
+                      alt={contributor.username}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-[0.5rem] font-semibold text-white">
+                      {formatContributorInitials(contributor.username)}
+                    </AvatarFallback>
+                  </Avatar>
                 ))}
                 {task.contributors.length === 0 ? (
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-white/30 text-[0.65rem] uppercase tracking-[0.35em] text-white/60">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-white/30 text-[0.5rem] uppercase tracking-[0.35em] text-white/60">
                     +
                   </div>
                 ) : null}
+                {task.contributors.length > 4 && (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full border border-blue-500 bg-blue-500 text-[0.5rem] font-semibold text-white">
+                    +{task.contributors.length - 4}
+                  </div>
+                )}
               </div>
-              <span className="text-[0.65rem] uppercase tracking-[0.35em] text-white/60">
+              <span className="text-[0.5rem] uppercase tracking-[0.35em] text-white/60">
                 {task.contributors.length}{' '}
                 {task.contributors.length > 1 ? 'contributeurs' : 'contributeur'}
               </span>
@@ -158,15 +235,23 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }
             <Button
               type="button"
               variant="outline"
-              className="group border border-brand-primary/60 bg-transparent px-6 text-[0.6rem] uppercase tracking-[0.35em] text-brand-primary transition-colors hover:bg-brand-primary hover:text-brand-dark"
-              onClick={() => onOpen(task)}
+              size="sm"
+              className="group border border-white/30 bg-transparent px-4 text-[0.5rem] uppercase tracking-[0.35em] text-white hover:bg-white hover:text-black"
+              onClick={() => {
+                if (task.html_url) {
+                  window.open(task.html_url, '_blank', 'noopener,noreferrer');
+                } else {
+                  onOpen(task);
+                }
+              }}
             >
-              Détails
-              <ArrowRight className="ml-2 h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              Rejoindre
+              <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </div>
+    </Card>
     </motion.div>
   );
 }
@@ -184,7 +269,7 @@ function TasksGrid({ tasks, onOpen }: { tasks: Task[]; onOpen: (task: Task) => v
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3 auto-rows-max">
       {tasks.map((task) => (
         <TaskCard key={task.id} task={task} onOpen={onOpen} />
       ))}
