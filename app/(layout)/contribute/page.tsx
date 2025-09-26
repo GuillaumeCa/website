@@ -127,7 +127,7 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }
           transition: 'height 200ms cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
-        <CardHeader className="space-y-4 p-6">
+        <CardHeader className="space-y-4 p-6 pt-0">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <CategoryIcon className="h-6 w-6 text-white" />
@@ -148,7 +148,7 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }
           
           {/* Image placeholder - visible seulement lors de l'expansion, entre catégorie et titre */}
           <div 
-            className={`relative h-40 w-full overflow-hidden transition-all duration-200 ease-out ${
+            className={`relative h-40 w-full overflow-hidden transition-all duration-200 ease-out mb-0 ${
               isExpanded 
                 ? 'opacity-100 max-h-40 transform translate-y-0' 
                 : 'opacity-0 max-h-0 transform -translate-y-4'
@@ -250,6 +250,23 @@ function TaskCard({ task, onOpen }: { task: Task; onOpen: (task: Task) => void }
             </Button>
           </div>
         </CardContent>
+      </div>
+      
+      {/* HR avec nombre de contributeurs - position fixe en bas, disparaît lors de l'expansion */}
+      <div 
+        className={`absolute bottom-0 left-0 right-0 transition-all duration-200 ease-out ${
+          isExpanded 
+            ? 'opacity-0 transform translate-y-4' 
+            : 'opacity-100 transform translate-y-0'
+        }`}
+      >
+        <hr className="border-white/20 mx-6" />
+        <div className="px-6 py-2 bg-gradient-to-t from-black/40 to-transparent">
+          <span className="text-[0.5rem] uppercase tracking-[0.35em] text-white/60">
+            {task.contributors.length}{' '}
+            {task.contributors.length > 1 ? 'contributeurs' : 'contributeur'}
+          </span>
+        </div>
       </div>
     </Card>
     </motion.div>
@@ -562,7 +579,7 @@ export default function ContributePage() {
                   );
                 })}
               </div>
-              <div className="relative max-w-xl">
+              <div className="relative max-w-xl" suppressHydrationWarning>
                 <Input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}

@@ -637,7 +637,55 @@ export function useTasks(): UseTasksResult {
 
   const loadGithubIssues = useCallback(async (): Promise<Task[]> => {
     try {
-      // Utiliser le mock au lieu de l'API réelle
+      const response = await fetch('/api/github/issues');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      const issues = data.issues || [];
+      
+      return issues.map((issue: any) => ({
+        id: String(issue.id),
+        title: typeof issue.title === 'string' && issue.title.trim().length > 0 ? issue.title : 'Tâche sans titre',
+        description:
+          typeof issue.description === 'string' && issue.description.trim().length > 0
+            ? issue.description
+            : 'Description à compléter',
+        category: normalizeTaskCategory(issue.category),
+        rawCategory: issue.category || undefined,
+        status: normalizeTaskStatus(issue.status),
+        difficulty: normalizeTaskDifficulty(issue.difficulty),
+        tags: issue.tags || undefined,
+        requiredRoles: undefined,
+        deliverables: undefined,
+        max_contributors: null,
+        contributors: Array.isArray(issue.contributors)
+          ? issue.contributors
+              .filter(Boolean)
+              .map((contributor: any) => ({
+                id: String(contributor.id),
+                user_id: String(contributor.user_id),
+                username: String(contributor.username),
+                avatar_url: contributor.avatar_url || null,
+                role: contributor.role || null,
+                claimed_at: contributor.claimed_at || null
+              }))
+          : [],
+        created_at: issue.created_at ? String(issue.created_at) : undefined,
+        updated_at: issue.updated_at ? String(issue.updated_at) : undefined,
+        html_url: issue.html_url || undefined,
+        repository: issue.repository || undefined
+      }));
+    } catch (error) {
+      console.error('Erreur lors du chargement des issues GitHub:', error);
+      // En cas d'erreur, utiliser les données mock comme fallback
       const mockIssues = createMockGitHubIssues();
       
       return mockIssues.map((issue) => ({
@@ -675,10 +723,9 @@ export function useTasks(): UseTasksResult {
           : [],
         created_at: issue.created_at ? String(issue.created_at) : undefined,
         updated_at: issue.updated_at ? String(issue.updated_at) : undefined,
-        html_url: issue.html_url || undefined
+        html_url: issue.html_url || undefined,
+        repository: undefined // Les données mock n'ont pas de repository
       }));
-    } catch {
-      return [];
     }
   }, [createMockGitHubIssues]);
 
@@ -704,7 +751,16 @@ export function useTasks(): UseTasksResult {
     try {
       const ghTasks = await loadGithubIssues();
       setTasks(ghTasks);
-      setIsUsingFallback(false);
+      // Vérifier si on utilise les données mock (fallback)
+      // Les données mock ont repository === undefined, les vraies données GitHub ont un repository défini
+      const isUsingMock = ghTasks.length > 0 && ghTasks.some(task => task.repository === undefined);
+      setIsUsingFallback(isUsingMock);
+      
+      if (isUsingMock) {
+        setError('Utilisation des données de démonstration (GitHub non accessible)');
+      } else {
+        setError(null); // Pas d'erreur si on utilise les vraies données
+      }
     } catch (err) {
       console.error('Erreur inattendue lors du chargement des tâches', err);
       setError('Erreur de connexion à GitHub.');
@@ -713,7 +769,7 @@ export function useTasks(): UseTasksResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadGithubIssues]);
 
   useEffect(() => {
     void loadTasks();
